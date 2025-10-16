@@ -1,17 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, ChangeEvent, MouseEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Head from "next/head";
 import Image from "next/image";
-import {
-  FlutterWaveButton,
-  closePaymentModal,
-  useFlutterwave,
-} from "flutterwave-react-v3";
+import { closePaymentModal, useFlutterwave } from "flutterwave-react-v3";
 
-// Payment Option Component
-const PaymentOption = ({ icon, label, fee, disabled, onClick }) => (
+// ---------- Types ----------
+
+interface PaymentOptionProps {
+  icon?: string;
+  label: string;
+  fee?: string;
+  disabled?: boolean;
+  onClick?: (e: MouseEvent<HTMLDivElement>) => void;
+}
+
+interface PriceDisplayProps {
+  total: string;
+}
+
+interface FlutterwaveConfig {
+  public_key: string;
+  tx_ref: string;
+  amount: number;
+  currency: string;
+  payment_options: string;
+  customer: {
+    email: string;
+    phone_number: string;
+    name: string;
+  };
+  customizations: {
+    title: string;
+    description: string;
+    logo: string;
+  };
+}
+
+// ---------- Components ----------
+
+// Payment Option
+const PaymentOption: React.FC<PaymentOptionProps> = ({
+  icon,
+  label,
+  fee,
+  disabled = false,
+  onClick,
+}) => (
   <div
     onClick={!disabled ? onClick : undefined}
     className={`flex flex-col items-center justify-center border rounded-xl p-4 text-center cursor-pointer transition ${
@@ -30,10 +66,13 @@ const PaymentOption = ({ icon, label, fee, disabled, onClick }) => (
   </div>
 );
 
-// Discount Component with Toggle
-const DiscountInput = () => {
+// Discount Input
+const DiscountInput: React.FC = () => {
   const [active, setActive] = useState(false);
   const [code, setCode] = useState("");
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setCode(e.target.value);
 
   if (!active) {
     return (
@@ -51,7 +90,7 @@ const DiscountInput = () => {
       <input
         type='text'
         value={code}
-        onChange={(e) => setCode(e.target.value)}
+        onChange={handleChange}
         placeholder='Enter your code'
         className='px-4 py-2 bg-transparent text-white placeholder-gray-300 focus:outline-none absolute'
       />
@@ -74,9 +113,9 @@ const DiscountInput = () => {
   );
 };
 
-// Price Display styled like screenshot
-const PriceDisplay = ({ total }) => {
-  const [whole, decimal] = total.split(".");
+// Price Display
+const PriceDisplay: React.FC<PriceDisplayProps> = ({ total }) => {
+  const [whole, decimal = "00"] = total.split(".");
   return (
     <div className='flex items-start justify-center my-5'>
       <span className='text-2xl font-bold mr-1'>$</span>
@@ -88,7 +127,9 @@ const PriceDisplay = ({ total }) => {
   );
 };
 
-export default function CheckoutPage() {
+// ---------- Page ----------
+
+export default function CheckoutPage(): React.ReactElement {
   const params = useSearchParams();
   const title = params.get("title") || "Service";
   const price = parseFloat(params.get("price") || "0");
@@ -96,8 +137,8 @@ export default function CheckoutPage() {
   const total = (price - discount).toFixed(2);
 
   // Flutterwave config
-  const config = {
-    public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
+  const config: FlutterwaveConfig = {
+    public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || "",
     tx_ref: Date.now().toString(),
     amount: parseFloat(total),
     currency: "NGN",
@@ -131,7 +172,6 @@ export default function CheckoutPage() {
               Total Amount to be Paid
             </h2>
             <PriceDisplay total={total} />
-
             <DiscountInput />
 
             <div className='mt-12 space-y-4 text-sm'>
@@ -160,7 +200,6 @@ export default function CheckoutPage() {
               Select a payment method
             </h2>
             <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-              {/* Local Cards - Flutterwave triggers on click */}
               <PaymentOption
                 icon='/Local.jpg'
                 label='Local Cards'
@@ -183,7 +222,6 @@ export default function CheckoutPage() {
               />
               <PaymentOption icon='/Apple.png' label='Apple Pay' disabled />
               <PaymentOption icon='/Cards.gif' label='International Cards' />
-
               <PaymentOption
                 icon='/Paypal.png'
                 label='PayPal'
@@ -215,13 +253,14 @@ export default function CheckoutPage() {
         </div>
 
         {/* Footer Info */}
-        <div className='max-w-6xl mt-8 text-xs text-gray-400 space-y-2 '>
+        <div className='max-w-6xl mt-8 text-xs text-gray-400 space-y-2 text-center'>
           <p>
-            This charge will appear as Miles Creative Agency on your statement.
+            This charge will appear as <b>Miles Creative Agency</b> on your
+            statement.
           </p>
           <p>
-            Since service is provided for training and content purposes only,
-            refund policies depend on terms agreed.
+            Since the service is provided for training and content purposes
+            only, refund policies depend on terms agreed.
           </p>
         </div>
       </div>

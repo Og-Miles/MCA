@@ -3,7 +3,6 @@ import Hero from "@/components/Hero";
 import Plans from "@/components/Plans";
 import Process from "@/components/Process";
 import Services from "@/components/Services";
-import Tools from "@/components/Tools";
 import { HeroScrollDemo } from "@/components/ui/HeroScrollDemo";
 
 export default function Home() {
@@ -16,7 +15,7 @@ export default function Home() {
         <Services />
         <Process />
         <Plans />
-        <Tools />
+        {/* <Tools /> */}
       </div>
     </main>
   );
