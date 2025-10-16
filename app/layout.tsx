@@ -5,7 +5,7 @@ import Navbar from "@/components/ui/NavBar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Miles Creative Institute",
+  title: "Miles Creative Agency",
   description: "Web & Mobile Development | Branding | Copywriting",
 };
 
